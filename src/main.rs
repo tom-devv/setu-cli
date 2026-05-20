@@ -1,4 +1,4 @@
-use std::{process, result};
+use std::process;
 
 use colored::Colorize;
 use futures::future::join_all;
@@ -45,8 +45,11 @@ async fn main() {
 
     if malformed_links {
         println!("{}", "Scan complete. Broken links detected".red().bold());
-        process::exit(1)
-    }
 
-    println!("{}", "Scan complete. All links healthy!".green().bold());
+        if args.strict {
+            process::exit(1)
+        }
+    } else {
+        println!("{}", "Scan complete. All links healthy!".green().bold());
+    }
 }
