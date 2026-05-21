@@ -5,7 +5,7 @@ use reqwest::Client;
 
 use crate::checker::MarkdownCheckResult;
 
-pub async fn parse_markdown(path: &PathBuf) -> MarkdownCheckResult {
+pub async fn parse_markdown(path: &PathBuf, concerns: &Option<Vec<u16>>) -> MarkdownCheckResult {
     let markdown_input = match fs::read_to_string(&path) {
         Ok(contents) => contents.to_string(),
         Err(_) => {
@@ -31,7 +31,7 @@ pub async fn parse_markdown(path: &PathBuf) -> MarkdownCheckResult {
         }
     }
     let client = Client::new();
-    let remote_checks = crate::checker::remote::evaluate(path, remotes, &client).await;
+    let remote_checks = crate::checker::remote::evaluate(path, remotes, &client, concerns).await;
     let local_checks = crate::checker::local::evaluate(path, locals);
 
     let checks = local_checks.into_iter().chain(remote_checks).collect();

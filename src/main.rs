@@ -9,9 +9,12 @@ use setu_cli::{MarkdownCheckResult, get_markdowns, parse_markdown};
 #[derive(Parser, Debug)]
 #[command(name = "setu")]
 #[command(author, version, about = "Setu checks markdown for broken links", long_about = None)]
-struct Args {
+struct SetuArgs {
     #[arg(default_value = ".")]
     target_path: String,
+
+    #[arg(short, long, value_delimiter = ',', default_value = "404")]
+    concerns: Option<Vec<u16>>,
 
     #[arg(short, long)]
     strict: bool,
@@ -19,11 +22,13 @@ struct Args {
 
 #[tokio::main]
 async fn main() {
-    let args = Args::parse();
+    let setu_args = SetuArgs::parse();
 
-    let paths = get_markdowns(&args.target_path);
+    let paths = get_markdowns(&setu_args.target_path);
 
-    let tasks = paths.iter().map(|path| parse_markdown(path));
+    let tasks = paths
+        .iter()
+        .map(|path| parse_markdown(path, &setu_args.concerns));
 
     let results: Vec<MarkdownCheckResult> = join_all(tasks).await;
 
@@ -42,7 +47,7 @@ async fn main() {
     if malformed_links {
         println!("{}", "Scan complete. Broken links detected".red().bold());
 
-        if args.strict {
+        if setu_args.strict {
             process::exit(1)
         }
     } else {

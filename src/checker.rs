@@ -59,7 +59,8 @@ impl LinkStatus {
                 _ => true,
             },
             LinkStatus::Remote(remote_link_status) => match remote_link_status {
-                RemoteLinkStatus::Reachable | RemoteLinkStatus::Concern(_) => false, // Concerns are not broken as such
+                RemoteLinkStatus::Reachable => false,
+                RemoteLinkStatus::Concern(_) => true, // concerns are specified by user input so must be deemed broken if they are found
                 _ => true,
             },
         }

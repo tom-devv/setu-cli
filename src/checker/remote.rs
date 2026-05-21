@@ -9,6 +9,7 @@ async fn evaluate_remote_url(
     mdx_path: PathBuf,
     remote_url: String,
     client: Client,
+    concerns: &Option<Vec<u16>>,
 ) -> LinkCheckResult {
     let response = client
         .head(&remote_url)
@@ -18,10 +19,17 @@ async fn evaluate_remote_url(
 
     match response {
         Ok(res) => {
+            // Concerning URL's are matched against program arguments
             let status = if res.status() == StatusCode::OK {
                 RemoteLinkStatus::Reachable
             } else {
-                RemoteLinkStatus::Concern(res.status().as_u16())
+                let return_code = res.status().as_u16();
+                match concerns {
+                    Some(codes) if codes.contains(&return_code) => {
+                        RemoteLinkStatus::Concern(return_code)
+                    }
+                    _ => RemoteLinkStatus::Reachable,
+                }
             };
             LinkCheckResult {
                 source_file: mdx_path,
@@ -41,6 +49,7 @@ pub async fn evaluate(
     mdx_path: &PathBuf,
     remote_urls: Vec<String>,
     client: &Client,
+    concerns: &Option<Vec<u16>>,
 ) -> Vec<LinkCheckResult> {
     const MAX_CONCURRENT_REQUESTS: usize = 50;
 
@@ -48,7 +57,7 @@ pub async fn evaluate(
         .map(|url| {
             let client = client.clone();
             let mdx_path = mdx_path.clone();
-            async move { evaluate_remote_url(mdx_path, url, client).await }
+            async move { evaluate_remote_url(mdx_path, url, client, concerns).await }
         })
         .buffer_unordered(MAX_CONCURRENT_REQUESTS);
 
