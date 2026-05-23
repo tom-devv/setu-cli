@@ -49,6 +49,7 @@ impl fmt::Display for RemoteLinkStatus {
 pub enum LinkStatus {
     Local(LocalLinkStatus),
     Remote(RemoteLinkStatus),
+    Invalid(String),
 }
 
 impl LinkStatus {
@@ -63,6 +64,7 @@ impl LinkStatus {
                 RemoteLinkStatus::Concern(_) => true, // concerns are specified by user input so must be deemed broken if they are found
                 _ => true,
             },
+            _ => true,
         }
     }
 }
@@ -72,6 +74,7 @@ impl fmt::Display for LinkStatus {
         match self {
             LinkStatus::Local(status) => fmt::Display::fmt(status, f),
             LinkStatus::Remote(status) => fmt::Display::fmt(status, f),
+            LinkStatus::Invalid(err) => fmt::Display::fmt(err, f),
         }
     }
 }
@@ -115,6 +118,16 @@ impl fmt::Display for MarkdownCheckResult {
                             check.status
                         )?;
                     }
+                    checker::LinkStatus::Invalid(err) => {
+                        write!(
+                            f,
+                            "{} Invalid URL {} at {} | {}\n",
+                            "FAIL".red().bold(),
+                            check.raw_link.cyan(),
+                            check.source_file.to_string_lossy().green(),
+                            err
+                        )?;
+                    }
                     _ => {}
                 }
             }
@@ -129,5 +142,6 @@ impl fmt::Display for MarkdownCheckResult {
     }
 }
 
+pub mod invalid;
 pub mod local;
 pub mod remote;

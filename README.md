@@ -61,6 +61,19 @@ For example under these rules:
 
 `500 - Faulty`
 
+## Outputs
+
+Outputs are categorised as `Faulty` or `Invalid`.
+
+### Examples
+
+`FAIL Faulty local link ./does_not_exist.png at ./tests/test.md | The local link does not exist`
+
+`FAIL Faulty remote URL https://simulatehttpcode.vercel.app/statuscode?q=404 at ./tests/test.md | The URL returned an unsuccessful status code: 404` _(note: this is with --concerns 404)_
+
+`FAIL Invalid URL Empty URL at abc.md | Invalid Path`
+
+
 ## CI Examples
 
 To use this as part of your CI see [the workflow used by this repository](https://github.com/tom-devv/Setu/blob/main/.github/workflows/markdown-checker.yml).
